@@ -220,6 +220,15 @@ class GameController extends ChangeNotifier {
   }
 
   void restartGame() {
+    _gameState = GameState(
+      board: List<String>.filled(9, ''),
+      currentTurn: 'X',
+      winner: null,
+      status: 'playing',
+      roomId: _gameState.roomId,
+    );
+    _opponentLeft = false;
+    notifyListeners();
     _socketService.restartGame(_gameState.roomId);
   }
 

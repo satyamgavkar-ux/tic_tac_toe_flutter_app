@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'controllers/game_controller.dart';
+import 'screens/splash_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/waiting_screen.dart';
 import 'screens/join_game_screen.dart';
@@ -37,7 +38,7 @@ class _OnlineTicTacToeAppState extends State<OnlineTicTacToeApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Online Tic Tac Toe',
+      title: 'Tic Tac Toe',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
@@ -56,7 +57,8 @@ class _OnlineTicTacToeAppState extends State<OnlineTicTacToeApp> {
       themeMode: ThemeMode.system,
       initialRoute: '/',
       routes: {
-        '/': (context) => HomeScreen(controller: _gameController),
+        '/': (context) => const SplashScreen(),
+        '/home': (context) => HomeScreen(controller: _gameController),
         '/waiting': (context) => WaitingScreen(controller: _gameController),
         '/join': (context) => JoinGameScreen(controller: _gameController),
         '/game': (context) => GameScreen(controller: _gameController),

@@ -3,22 +3,32 @@ import '../controllers/game_controller.dart';
 import '../widgets/game_board.dart';
 import '../widgets/player_status.dart';
 
-class GameScreen extends StatelessWidget {
+class GameScreen extends StatefulWidget {
   final GameController controller;
 
   const GameScreen({super.key, required this.controller});
 
+  @override
+  State<GameScreen> createState() => _GameScreenState();
+}
+
+class _GameScreenState extends State<GameScreen> {
+  bool _isDialogShowing = false;
+
   void _showGameOverDialog(BuildContext context) {
+    if (_isDialogShowing) return;
+    _isDialogShowing = true;
+
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) {
+      builder: (dialogContext) {
         return ListenableBuilder(
-          listenable: controller,
+          listenable: widget.controller,
           builder: (context, _) {
-            final winner = controller.winner;
+            final winner = widget.controller.winner;
             final isDraw = winner == 'draw';
-            final isOpponentLeft = controller.opponentLeft;
+            final isOpponentLeft = widget.controller.opponentLeft;
 
             String title;
             String message;
@@ -29,7 +39,7 @@ class GameScreen extends StatelessWidget {
             } else if (isDraw) {
               title = "It's a Draw!";
               message = 'Well played both of you!';
-            } else if (winner == controller.playerSymbol) {
+            } else if (winner == widget.controller.playerSymbol) {
               title = '🎉 You Won!';
               message = 'Congratulations on your victory!';
             } else {
@@ -61,8 +71,9 @@ class GameScreen extends StatelessWidget {
                 if (!isOpponentLeft) ...[
                   FilledButton.icon(
                     onPressed: () {
-                      Navigator.pop(context);
-                      controller.restartGame();
+                      _isDialogShowing = false;
+                      Navigator.pop(dialogContext);
+                      widget.controller.restartGame();
                     },
                     icon: const Icon(Icons.refresh_rounded),
                     label: const Text('Play Again'),
@@ -71,9 +82,10 @@ class GameScreen extends StatelessWidget {
                 ],
                 OutlinedButton.icon(
                   onPressed: () {
-                    Navigator.pop(context);
-                    controller.leaveGame();
-                    Navigator.popUntil(context, ModalRoute.withName('/'));
+                    _isDialogShowing = false;
+                    Navigator.pop(dialogContext);
+                    widget.controller.leaveGame();
+                    Navigator.popUntil(context, ModalRoute.withName('/home'));
                   },
                   icon: const Icon(Icons.home_rounded),
                   label: const Text('Back to Home'),
@@ -83,7 +95,9 @@ class GameScreen extends StatelessWidget {
           },
         );
       },
-    );
+    ).then((_) {
+      _isDialogShowing = false;
+    });
   }
 
   @override
@@ -94,8 +108,9 @@ class GameScreen extends StatelessWidget {
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-        controller.leaveGame();
-        Navigator.popUntil(context, ModalRoute.withName('/'));
+        _isDialogShowing = false;
+        widget.controller.leaveGame();
+        Navigator.popUntil(context, ModalRoute.withName('/home'));
       },
       child: Scaffold(
         appBar: AppBar(
@@ -106,19 +121,23 @@ class GameScreen extends StatelessWidget {
               icon: const Icon(Icons.exit_to_app_rounded),
               tooltip: 'Leave Game',
               onPressed: () {
-                controller.leaveGame();
-                Navigator.popUntil(context, ModalRoute.withName('/'));
+                _isDialogShowing = false;
+                widget.controller.leaveGame();
+                Navigator.popUntil(context, ModalRoute.withName('/home'));
               },
             ),
           ],
         ),
         body: ListenableBuilder(
-          listenable: controller,
+          listenable: widget.controller,
           builder: (context, _) {
             // Auto open game over / opponent left dialog when status becomes game_over or opponent_left
-            if (controller.status == 'game_over' || controller.opponentLeft) {
+            if ((widget.controller.status == 'game_over' || widget.controller.opponentLeft) &&
+                !_isDialogShowing) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (ModalRoute.of(context)?.isCurrent == true) {
+                if (mounted &&
+                    (widget.controller.status == 'game_over' || widget.controller.opponentLeft) &&
+                    !_isDialogShowing) {
                   _showGameOverDialog(context);
                 }
               });
@@ -130,30 +149,30 @@ class GameScreen extends StatelessWidget {
                 child: Column(
                   children: [
                     PlayerStatus(
-                      playerSymbol: controller.playerSymbol ?? '?',
-                      currentTurn: controller.currentTurn,
-                      roomId: controller.roomId,
-                      isMyTurn: controller.isMyTurn,
+                      playerSymbol: widget.controller.playerSymbol ?? '?',
+                      currentTurn: widget.controller.currentTurn,
+                      roomId: widget.controller.roomId,
+                      isMyTurn: widget.controller.isMyTurn,
                     ),
                     const Spacer(),
 
                     // Game Board Grid
                     GameBoard(
-                      board: controller.board,
-                      isMyTurn: controller.isMyTurn,
+                      board: widget.controller.board,
+                      isMyTurn: widget.controller.isMyTurn,
                       onCellTap: (index) {
-                        controller.makeMove(index);
+                        widget.controller.makeMove(index);
                       },
                     ),
 
                     const Spacer(),
 
                     // Bottom info indicator
-                    if (controller.errorMessage != null)
+                    if (widget.controller.errorMessage != null)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 8.0),
                         child: Text(
-                          controller.errorMessage!,
+                          widget.controller.errorMessage!,
                           style: TextStyle(
                             color: theme.colorScheme.error,
                             fontWeight: FontWeight.bold,

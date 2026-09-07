@@ -128,7 +128,17 @@ class HomeScreen extends StatelessWidget {
                       ),
                     ),
                   ],
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 24),
+                  Text(
+                    'Developed by Satyam',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 0.8,
+                      color: colorScheme.outline,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
                 ],
               ),
             );
